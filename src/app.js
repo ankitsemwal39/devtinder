@@ -1,37 +1,31 @@
-// console.log("Starting a new project.");
-
 const express =require('express');
 
 const app = express();
 
-/*// Route 1: Root path "/"
-app.use("/", (req, res) => {
-  res.send("👋 Hello from the root route!");
+// Middlewares & Error Handlers
+app.use("/user",(req,res,next) =>{
+    //Route Handler
+    // res.send("route handler 1")
+    console.log("Handling the route user 1!!");
+    // res.send("Response 1!!");
+    next();
+    
+},
+(req,res,next) =>{
+    console.log("Handling the route user 2!!");
+    // res.send("Response 2!!")
+  next();
+},
+(req,res,next) =>{
+    console.log("Handling the route user 2!!");
+    res.send("Response 2!!")
+    // next()
 });
 
-// Route 2: "/test"
-app.use("/test", (req, res) => {
-  res.send("🧪 Welcome to the test endpoint!");
-});
 
-// Route 3: "/pop"
-app.use("/pop", (req, res) => {
-  res.send("🎉 You reached the pop route!");
-});*/
 
-app.get("/", (req, res) => {
-    res.send("👋 Hello from the root route!");
-});
-
-app.get("/test", (req, res) => {
-    res.send("🧪 Welcome to the test endpoint!");
-});
-
-app.get("/pop", (req, res) => {
-    res.send("🎉 You reached the pop route!");
-});
 
 
 app.listen(3000,() =>{
-    console.log("server is automatically listening on port 3000");
+    console.log("server is automatically listening on port 3000 ");
 });
