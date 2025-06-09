@@ -35,13 +35,17 @@ app.post("/signup",async(req,res)=>{
     if (!password || password.length < 6) {
         return res.status(400).json({ error: "Password must be at least 6 characters" });
     }
+
+    if (!age || age <= 18) {
+        return res.status(400).json({ error: "Age must be at least 18 years old" });
+    }
     
   try{
    const user =new User(userData);
    await user.save();
    res.send("User Added sucssfully")
   }catch{
-    res.status(400).send("Error saving the user"+err.message);
+    res.status(400).send("Error saving the user" );
   }
 })
 
@@ -90,11 +94,11 @@ app.patch('/user', async (req, res) => {
     try {
         // const users = await User.findByIdAndDelete({_id:userId});
         const users = await User.findByIdAndUpdate(
-            {_id:userId},data,{returnDocument:'before'});
+            {_id:userId},data,{returnDocument:'before',runValidators:true,});
         console.log(users);
             res.send("user data successfully updated");
     } catch (err) {
-        res.status(400).json({ error: 'Something went wrong' });
+        res.status(400).send('Something went wrong'+ err.message );
     }
 });
 
