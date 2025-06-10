@@ -9,6 +9,8 @@ const User =require("./models/user")
 // Middleware to parse JSON request bodies
 app.use(express.json());
 
+
+/*
 app.post("/signup",async(req,res)=>{
   const userData = req.body;
  console.log("userData",userData);
@@ -21,6 +23,7 @@ app.post("/signup",async(req,res)=>{
 //     "gender": "Male",
 //     "phoneno": "9988776655"
 //   }
+    try{
     const { firstName, lastName, emailID, password, age, gender, phoneNo } = userData;
 
     // Example: process each field
@@ -40,14 +43,54 @@ app.post("/signup",async(req,res)=>{
         return res.status(400).json({ error: "Age must be at least 18 years old" });
     }
     
-  try{
+ 
+    console.log("working 1");
    const user =new User(userData);
+   console.log("working user"+user);
    await user.save();
    res.send("User Added sucssfully")
   }catch{
     res.status(400).send("Error saving the user" );
   }
 })
+*/
+
+app.post("/signup", async (req, res) => {
+    const userData = req.body;
+    console.log("userData", userData);
+
+    const { firstName, lastName, emailID, password, age, gender, phoneNo } = userData;
+    //validate on data
+    if (!firstName) {
+        return res.status(400).json({ error: "First name is required" });
+    }
+
+    if (!emailID || !emailID.includes('@')) {
+        return res.status(400).json({ error: "Valid emailID is required" });
+    }
+
+    if (!password || password.length < 6) {
+        return res.status(400).json({ error: "Password must be at least 6 characters" });
+    }
+
+    if (!age || age <= 18) {
+        return res.status(400).json({ error: "Age must be at least 18 years old" });
+    }
+    //Encrypt the password
+
+    try {
+        console.log("working 1");
+        const user = new User(userData);
+        console.log("working user", user);
+        await user.save();
+        res.status(201).json({ message: "User added successfully", user });
+    } catch (err) {
+        console.error("Error saving the user:", err);
+        res.status(400).send("Error saving the user");
+    }
+});
+
+
 
 // Feed API GET/feed - get all the users
 app.get('/feed', async (req, res) => {
@@ -91,14 +134,39 @@ app.delete('/user', async (req, res) => {
 app.patch('/user', async (req, res) => {
     const userId = req.body.userId;
     const data =req.body;
+    
+  
+
     try {
+          //toIgnore or toAllowed Data
+    const ALLOWED_UPDATES =["userId","skills",
+        "photoUrl","about","gender","age","emailID"]
+
+//     {
+//    "userId":"6842928f18ea52d8bae47961",
+// "firstName":"Rahul222",
+// "skills":["js","cs"],
+//  "gender": "test"
+// }
+    const isUpdateAllowed =Object.keys(data).every((k)=>
+    ALLOWED_UPDATES.includes(k))
+
+    if(!isUpdateAllowed){
+        // res.status(400).send("Update not allowed")
+        throw new Error("Update not allowed");
+    }
+    if(data?.skills.length >4){
+        throw new Error ("Skills cannot be more then 4")
+    }
+
+
         // const users = await User.findByIdAndDelete({_id:userId});
         const users = await User.findByIdAndUpdate(
             {_id:userId},data,{returnDocument:'before',runValidators:true,});
         console.log(users);
             res.send("user data successfully updated");
     } catch (err) {
-        res.status(400).send('Something went wrong'+ err.message );
+        res.status(400).send('Something went wrong '+ err.message );
     }
 });
 

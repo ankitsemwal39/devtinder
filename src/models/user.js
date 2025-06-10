@@ -1,4 +1,5 @@
 const mongoose = require('mongoose');
+var validator = require('validator');
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -16,14 +17,24 @@ const userSchema = new mongoose.Schema({
     required: true,
     unique: true,
     lowercase: true,
-    // trim: true,
-    // match: [/\S+@\S+\.\S+/, 'Invalid email format']
+    trim: true,
+    // match: [/\S+@\S+\.\S+/, 'Invalid email format']    
+    validate(value){
+        if(!validator.isEmail(value)){
+        throw new Error(" Invalid email address: ");
+        }
+    },
   },
   password: {
     type: String,
     required: true,
     unique:true,
-    minlength: 6
+    minlength: 10,
+    // validate(value){
+    //     if(!validator.isStrongPassword(value)){
+    //     throw new Error("Enter a Strong Pasword: ");
+    //     }
+    // },
   },
   age: {
     type: Number,
@@ -56,6 +67,13 @@ const userSchema = new mongoose.Schema({
   },
   skills:{
     type:[String],
+
+    validate(value){
+        if(value.length ==5){
+        throw new Error(`You must enter exactly 4 skills, but got ${value.length}`);
+        }
+    }
+    
   },
 }, { timestamps: true });
 
