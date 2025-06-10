@@ -1,13 +1,46 @@
 const express =require('express');
 
 const app = express();
+const bcrypt = require('bcrypt');
 
 //DB call
 const connectDB =require("./config/database")
 const User =require("./models/user")
+const {validateSignUpData} =require("./utils/validation")
 
 // Middleware to parse JSON request bodies
 app.use(express.json());
+
+
+
+
+//login
+app.post("/login",async(req,res)=>{
+
+    try{
+        const {emailID, password} =req.body;
+        
+        const user = await User.findOne({emailID :emailID});
+        if(!user){
+            throw new Error("Email id is invalid")
+        }
+
+
+        // Load hash from your password DB.
+        const  isPasswordValid =  bcrypt.compare(password, user.password);
+    // result == true
+            console.log("isPasswordValid : "+isPasswordValid);
+            if(isPasswordValid){
+                res.send("Login Successfull!!!")
+            }else{
+            throw new Error("Password is not Valid");
+        }
+
+      }catch(err){
+         res.status(400).send("ERROR :  " + err.message);
+
+    }
+})
 
 
 /*
@@ -56,37 +89,59 @@ app.post("/signup",async(req,res)=>{
 */
 
 app.post("/signup", async (req, res) => {
-    const userData = req.body;
-    console.log("userData", userData);
+    // const userData = req.body;
+    // console.log("userData", userData);
+     //old way validation if less parameters
+    // const { firstName, lastName, emailID, password, age, gender, phoneNo } = userData;
+    // //validate on data
+    // if (!firstName) {
+    //     return res.status(400).json({ error: "First name is required" });
+    // }
 
-    const { firstName, lastName, emailID, password, age, gender, phoneNo } = userData;
-    //validate on data
-    if (!firstName) {
-        return res.status(400).json({ error: "First name is required" });
-    }
+    // if (!emailID || !emailID.includes('@')) {
+    //     return res.status(400).json({ error: "Valid emailID is required" });
+    // }
 
-    if (!emailID || !emailID.includes('@')) {
-        return res.status(400).json({ error: "Valid emailID is required" });
-    }
+    // if (!password || password.length < 6) {
+    //     return res.status(400).json({ error: "Password must be at least 6 characters" });
+    // }
 
-    if (!password || password.length < 6) {
-        return res.status(400).json({ error: "Password must be at least 6 characters" });
-    }
-
-    if (!age || age <= 18) {
-        return res.status(400).json({ error: "Age must be at least 18 years old" });
-    }
+    // if (!age || age <= 18) {
+    //     return res.status(400).json({ error: "Age must be at least 18 years old" });
+    // }
     //Encrypt the password
 
+    
+
+
     try {
+        // new way if more parameters for validation
+        validateSignUpData(req);
+
+        const { firstName, lastName, emailID, password, age, gender, phoneno } = req.body;
+    
+        //Encrypt the password
+        // const {password} =req.body;
+        const passwordHash = await bcrypt.hash(password, 10);
+    // Store hash in your password DB.
+            console.log("passwordHash : "+passwordHash);
+        
+            const user = new User({
+                firstName,
+                lastName,
+                emailID,
+                password:passwordHash,
+                phoneno,
+            });
+
         console.log("working 1");
-        const user = new User(userData);
-        console.log("working user", user);
+        // const user = new User(User);
+        // console.log("working user", user);
         await user.save();
         res.status(201).json({ message: "User added successfully", user });
     } catch (err) {
         console.error("Error saving the user:", err);
-        res.status(400).send("Error saving the user");
+        res.status(400).send("ERROR :  " + err.message);
     }
 });
 
