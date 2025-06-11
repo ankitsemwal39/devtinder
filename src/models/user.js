@@ -1,5 +1,7 @@
 const mongoose = require('mongoose');
 var validator = require('validator');
+const bcrypt = require('bcrypt');
+var jwt = require('jsonwebtoken');
 
 const userSchema = new mongoose.Schema({
   firstName: {
@@ -76,6 +78,30 @@ const userSchema = new mongoose.Schema({
     
   },
 }, { timestamps: true });
+
+
+//jwd token into my schema method //best practics which attach to based on user so evry one have there own token
+//dont use arrow function here
+userSchema.methods.getJWT = async function () {
+  const user = this;
+  
+  //Create a JWT Token
+  const token = await jwt.sign({id:user._id}, "DEV@Tinder$790",{expiresIn:"1h"})
+  console.log("token : ",token);
+  return token;
+}
+
+userSchema.methods.validatePassword = async function (passwordInputByUser){
+
+  const user = this;
+
+  const passwordHash =user.password;
+  const  isPasswordValid =  bcrypt.compare(passwordInputByUser, 
+    passwordHash);
+     
+    return isPasswordValid;
+             
+}
 
 const userModel= mongoose.model('User', userSchema);
 
